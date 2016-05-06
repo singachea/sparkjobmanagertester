@@ -88,7 +88,7 @@ let createContext = function (ctxid) {
 
 let deleteContext = function () {
   if(createdPool.length <= 0) return;
-  let ctxid = _.head(createdPool);
+  let ctxid = _.sample(createdPool);
 
   let targetTime = `DeleteTime[${_.random(0, 1000)}]${ctxid}`;
 
@@ -106,10 +106,18 @@ let deleteContext = function () {
   })
 };
 
+
+let oldContextPoolLength = -1;
+let oldCreatedPoolLength = -1;
+
 let run = function () {
   tick++;
 
-  console.log('created/creating pool', `${createdPool.length}/${contextPool.length}`);
+  if(oldContextPoolLength != contextPool.length || oldCreatedPoolLength != createdPool.length) {
+    console.log('created/creating pool', `${createdPool.length}/${contextPool.length}`);
+    oldContextPoolLength = contextPool.length;
+    oldCreatedPoolLength = createdPool.length;
+  }
 
   if(Math.random() < creatingChance) {
     if(contextPool.length >= contextSize) return; // max out
