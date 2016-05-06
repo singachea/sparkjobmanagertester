@@ -8,7 +8,7 @@ let requestInterval = process.argv[2] || config.job.interval;
 
 let options = (name) => {
     return {
-        uri: `${config.job.host}/contexts/jobs`,
+        uri: `${config.job.host}/jobs`,
         method: 'POST',
         qs: {
             'context': name,
@@ -16,10 +16,10 @@ let options = (name) => {
         },
         body: {
             x: 10000,
-            sleep: 5000,
+            sleep: config.job.sumJob.sleep,
             ex: false
         },
-        timeout: 60000,
+        timeout: 600000,
         headers: {},
         json: true
     };
@@ -30,42 +30,56 @@ let optionsContext = () => {
     return {
         uri: `${config.job.host}/contexts`,
         method: 'GET',
-        timeout: 60000,
+        timeout: 600000,
         json: true
     };
 };
 
+function sequential(p, f) {
+    return p.then(() => {
+        return f()
+    });
+}
 
-let run = () => {
-    let tick = 0;
+let run = (tick) => {
+
     rp(optionsContext()).then(contexts => {
         console.log("Available contexts:");
         console.log(contexts);
         console.log("====================");
 
-        setInterval(() => {
-            _.forEach(contexts, cName => {
-                tick++;
-                let targetTime = `JobTick${tick}`;
+        var p = bb.resolve(null);
+
+        _.each(contexts, (cName, index) => {
+            p = sequential(p, () =>{
+                let tickIndex = tick + index;
+                let targetTime = `JobTick${tickIndex}`;
 
                 console.time(targetTime);
-                console.log(`Submit job for context ${cName} [tick: ${tick}]`);
-                rp(options(cName)).then(result => {
-                    console.log(`Successful Submit job for context ${cName} [tick: ${tick}]`);
+                console.log(`Submit job for context ${cName} [tick: ${tickIndex}]`);
+
+                return rp(options(cName)).then(result => {
+                    console.log(`Successful Submit job for context ${cName} [tick: ${tickIndex}]`);
                     console.log(result);
                 }).catch(err => {
-                    console.log(`Failed submit job for context ${cName} [tick: ${tick}]`);
+                    console.log(`Failed submit job for context ${cName} [tick: ${tickIndex}]`);
                     if(err.response) console.log(err.response.body);
                     else console.log(err);
                 }).finally(() => {
                     console.timeEnd(targetTime);
                 })
-            })
-        }, requestInterval);
+            }).delay(requestInterval);
+        });
+
+        p.then(() => {
+            run(tick + contexts.length);
+        });
     });
 };
 
 
-run();
+run(0);
+
+
 
 

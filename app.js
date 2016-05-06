@@ -33,7 +33,7 @@ let options = (name) => {
       'spark.cores.max': config.context.core,
       'spark.executor.memory': `${config.context.memory}g`
     },
-    timeout: 60000,
+    timeout: 600000,
     headers: {},
     json: true
   };
@@ -43,7 +43,7 @@ let optionsDelete = (name) => {
   return {
     uri: `${config.context.host}/contexts/ctx${name}`,
     method: 'DELETE',
-    timeout: 60000,
+    timeout: 600000,
     json: true
   };
 };
@@ -52,7 +52,7 @@ let optionsDeleteWithoutPrefix = (name) => {
   return {
     uri: `${config.context.host}/contexts/${name}`,
     method: 'DELETE',
-    timeout: 60000,
+    timeout: 600000,
     json: true
   };
 };
@@ -61,7 +61,7 @@ let optionsContext = () => {
   return {
     uri: `${config.context.host}/contexts`,
     method: 'GET',
-    timeout: 60000,
+    timeout: 600000,
     json: true
   };
 };
@@ -109,8 +109,7 @@ let deleteContext = function () {
 let run = function () {
   tick++;
 
-  console.log('contextPool', contextPool.length);
-  console.log('createdPool', createdPool.length);
+  console.log('created/creating pool', `${createdPool.length}/${contextPool.length}`);
 
   if(Math.random() < creatingChance) {
     if(contextPool.length >= contextSize) return; // max out
