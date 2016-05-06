@@ -10,10 +10,10 @@ module.exports = {
   },
   job: {
     host: 'http://localhost:8090',
-    interval: 500,
+    interval: 1000,
     jobClasses: ["sjm.jobs.SumJob"],
     sumJob: {
-      sleep: 10000
+      sleep: 100000
     }
   }
 };

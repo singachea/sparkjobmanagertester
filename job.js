@@ -68,7 +68,7 @@ let run = (tick) => {
                 }).finally(() => {
                     console.timeEnd(targetTime);
                 })
-            }).delay(requestInterval);
+            }).delay(_.random(1, requestInterval));
         });
 
         p.then(() => {
