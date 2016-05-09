@@ -1,19 +1,21 @@
+let host = process.env.SJMTEST_HOST || 'http://localhost:8090'
+
 module.exports = {
   context: {
-    host: 'http://localhost:8090',
-    core: 4,
-    memory: 10,
-    interval: 1000,
-    contextSize: 5,
-    defaultTick: 100,
-    contextCreationChance: 0.70
+    host: host,
+    core: process.env.SJMTEST_CORE || 4,
+    memory: process.env.SJMTEST_MEMORY || 10,
+    interval: process.env.SJMTEST_CONTEXT_INTERVAL || 1000,
+    contextSize: process.env.SJMTEST_CONTEXT_SIZE || 5,
+    defaultTick: process.env.SJMTEST_CONTEXT_TICK || 100,
+    contextCreationChance: process.env.SJMTEST_CREATING_CHANCE || 0.90
   },
   job: {
-    host: 'http://localhost:8090',
-    interval: 1000,
+    host: host,
+    interval: process.env.SJMTEST_JOB_INTERVAL || 1000,
     jobClasses: ["sjm.jobs.SumJob"],
     sumJob: {
-      sleep: 100000
+      sleep: process.env.SJMTEST_JOB_SLEEP || 100000
     }
   }
 };
