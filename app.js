@@ -4,6 +4,11 @@ let config = require('./config');
 let _ = require('lodash');
 let bb = require('bluebird');
 
+let winston = require('winston');
+winston.add(winston.transports.File, { filename: 'logs/creating_context.log' });
+
+let logger = winston;
+
 // 0: node bin
 // 1: file name
 
@@ -75,6 +80,7 @@ let createContext = function (ctxid) {
     console.log(result);
     createdPool.push(ctxid);
   }).catch( err => {
+    logger.error(err);
     console.log(`=========== ERROR for ${ctxid} =============`);
     if(err.response) console.log(err.response.body);
     else console.log(err);
@@ -98,6 +104,7 @@ let deleteContext = function () {
     _.remove(contextPool, e => e == ctxid);
     _.remove(createdPool, e => e == ctxid);
   }).catch(err => {
+    logger.error(err);
     console.log('--------> cannot delete ' + ctxid, createdPool);
     if(err.response) console.log(err.response.body);
     else console.log(err);
@@ -138,7 +145,8 @@ if(removeExistingContextFlag) {
         console.log(err);
       })
     })
-  }).then( () => {
+  }).delay(2000).then( () => {
+    console.log("=========================");
     setInterval(run, requestInterval);
   })
 }
