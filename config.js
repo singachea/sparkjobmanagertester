@@ -8,7 +8,8 @@ module.exports = {
     interval: process.env.SJMTEST_CONTEXT_INTERVAL || 1000,
     contextSize: process.env.SJMTEST_CONTEXT_SIZE || 5,
     defaultTick: process.env.SJMTEST_CONTEXT_TICK || 100,
-    contextCreationChance: process.env.SJMTEST_CREATING_CHANCE || 0.90
+    contextCreationChance: process.env.SJMTEST_CREATING_CHANCE || 0.90,
+    jobsPerContext: process.env.SJMTEST_JOBS_PER_CONTEXT || 3
   },
   job: {
     host: host,
