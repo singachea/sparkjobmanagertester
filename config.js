@@ -9,8 +9,8 @@ module.exports = {
     contextSize: process.env.SJMTEST_CONTEXT_SIZE || 5,
     defaultTick: process.env.SJMTEST_CONTEXT_TICK || 100,
     contextCreationChance: process.env.SJMTEST_CREATING_CHANCE || 0.90,
-    jobsPerContext: process.env.SJMTEST_JOBS_PER_CONTEXT || 3,
-    timeoutToKillContext: process.env.SJMTEST_TIMEOUT_TO_KILL_CONTEXT || 15000
+    jobsPerContext: process.env.SJMTEST_JOBS_PER_CONTEXT || 8,
+    timeoutToKillContext: process.env.SJMTEST_TIMEOUT_TO_KILL_CONTEXT || 10000
   },
   job: {
     host: host,

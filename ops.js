@@ -75,6 +75,10 @@ function submitJobByName(ctxName) {
         headers: {},
         json: true
     })
+    //     .then((result) => {
+    //     console.log(`Successful Submit job for context ${ctxName}`, result);
+    //     return result;
+    // })
 }
 
 function submitJobById(ctxId) {

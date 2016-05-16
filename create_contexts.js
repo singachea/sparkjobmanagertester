@@ -28,6 +28,7 @@ console.log("contextSize", contextSize);
 console.log("starting tick", tick);
 console.log("creatingChance", creatingChance);
 console.log("requestInterval", requestInterval);
+console.log("jobsPerContext", jobsPerContext);
 console.log("-----------------------------------------------");
 
 
@@ -42,10 +43,12 @@ function createContext(ctxId) {
     var measuredCreationTime = `Context Creation ${ctxId}`;
     console.time(measuredCreationTime);
     console.log(`Initiate context creation for ${ctxId}`);
+    requestingContextPool.push(ctxId);
 
     return ops.createContextById(ctxId).then(result => {
         activeContextPool.push(ctxId);
         console.log("Active Context Pool:", activeContextPool);
+        return ctxId;
     }).catch( err => {
         logger.error(err);
         console.log(`=========== ERROR for ${ctxId} =============`);
@@ -83,24 +86,61 @@ function deleteContext() {
 }
 
 
-function queueJobs(ctxId, num) {
-    let qJobs = _.map(_.range(0, num), index => {
-        return ops.submitJobById(ctxId);
+function sequential(p, f) {
+    return p.then(() => {
+        return f()
     });
-    
-    return bb.all(qJobs).then(result => {
+}
+
+function requestJob(ctxId, index) {
+    let tickIndex = 1 + index;
+    let targetTime = `Job for context ${ctxId} [${tickIndex}]`;
+
+    console.time(targetTime);
+    console.log(`Submit job for context ${ctxId} [tick: ${tickIndex}]`);
+
+
+    return ops.submitJobById(ctxId).then(result => {
+        console.log(`Successful Submit job for context ${ctxId} [tick: ${tickIndex}]`);
+        console.log(result);
+    }).catch(err => {
+        console.log(`Failed submit job for context ${ctxId} [tick: ${tickIndex}]`);
+        if(err.response) console.log(err.response.body);
+        else console.log(err);
+    }).finally(() => {
+        console.timeEnd(targetTime);
+    });
+}
+
+
+
+function queueJobs(ctxId, num) {
+    // var p = bb.resolve(null);
+    // _.each(_.range(0, num), (index) => {
+    //     p = sequential(p, () =>{
+    //         return requestJob(ctxId, index);
+    //     }).delay(10);
+    // });
+
+    var p = bb.all(_.map(_.range(0, num), index => {
+        return requestJob(ctxId, index);
+    }));
+
+
+    return p.then(result => {
             console.log(`queue all jobs for context ${ctxId}`);
         })
         .delay(config.context.timeoutToKillContext)
         .then(() => {
             // remove context here
             return ops.deleteContextById(ctxId).then(dResult => {
-                console.log(`removed context ${dResult}`);
-                removeContextIdFromPools();
+                console.log(`removed context ${ctxId}: ${dResult}`);
+                removeContextIdFromPools(ctxId);
             })
         })
         .catch(err => {
-            console.log(err)
+            console.log(err);
+            removeContextIdFromPools(ctxId);
         });
 }
 
@@ -116,8 +156,11 @@ let run = function () {
 
     if(!autoDeleteContext) {
         if(requestingContextPool.length >= contextSize) return; // max out
-        createContext(tick);
-        queueJobs(tick, jobsPerContext);
+        createContext(tick).then((createdCtxId) =>{
+            setTimeout(()=> {
+                queueJobs(createdCtxId, jobsPerContext);
+            }, 2000);
+        });
     }
     else {
         if(Math.random() < creatingChance) {
