@@ -113,7 +113,6 @@ function requestJob(ctxId, index) {
 }
 
 
-
 function queueJobs(ctxId, num) {
     // var p = bb.resolve(null);
     // _.each(_.range(0, num), (index) => {
@@ -132,16 +131,22 @@ function queueJobs(ctxId, num) {
         })
         .delay(config.context.timeoutToKillContext)
         .then(() => {
+
+            // return ops.deleteContextById(ctxId).then(dResult => {
+            //     console.log(`removed context ${ctxId}: ${dResult}`);
+            //     removeContextIdFromPools(ctxId);
+            // })
+        })
+        .catch(err => {
+            console.log(err);
+            removeContextIdFromPools(ctxId);
+        }).finally(() => {
             // remove context here
             return ops.deleteContextById(ctxId).then(dResult => {
                 console.log(`removed context ${ctxId}: ${dResult}`);
                 removeContextIdFromPools(ctxId);
             })
         })
-        .catch(err => {
-            console.log(err);
-            removeContextIdFromPools(ctxId);
-        });
 }
 
 
