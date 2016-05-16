@@ -15,7 +15,8 @@ module.exports = {
   job: {
     host: host,
     interval: process.env.SJMTEST_JOB_INTERVAL || 1000,
-    jobClasses: ["sjm.jobs.SumJob"],
+    // jobClasses: ["sjm.jobs.SumJob"],
+    jobClasses: ["sjm.jobs.SqlJob"],
     sumJob: {
       sleep: process.env.SJMTEST_JOB_SLEEP || 100000
     }

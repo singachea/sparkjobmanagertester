@@ -64,9 +64,12 @@ function submitJobByName(ctxName) {
             'job': _.sample(config.job.jobClasses)
         },
         body: {
-            x: 10000,
-            sleep: config.job.sumJob.sleep,
-            ex: false
+            // sql: '',
+            // x: 10000,
+            // sleep: config.job.sumJob.sleep,
+            // ex: false,
+            sql : "select * from anno_clinvar.cpra_2016_02_0de5ec5_0",
+            take: 5
         },
         timeout: 600000,
         headers: {},

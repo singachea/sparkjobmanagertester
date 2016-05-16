@@ -1,12 +1,11 @@
 'strict';
 let rp = require('request-promise');
 let config = require('./config');
-let jobs = require('./jobs');
 let _ = require('lodash');
 let bb = require('bluebird');
 
 
-throw "don't use this anymore! Use `clean_contexts` and `create_contexts` instead!";
+// throw "don't use this anymore! Use `clean_contexts` and `create_contexts` instead!";
 
 let winston = require('winston');
 winston.add(winston.transports.File, { filename: 'logs/creating_context.log' });
@@ -115,27 +114,6 @@ let deleteContext = function () {
   }).finally(() => {
     console.timeEnd(targetTime);
   })
-};
-
-
-let queueJobs = function (ctxid, num) {
-  let qJobs = jobs.runJobs(ctxid, num);
-  bb.all(qJobs).then(result => {
-    console.log(`queue all jobs for context ${ctxid}`);
-    
-  })
-  .delay(10000)
-  .then(() => {
-    // remove context here
-    return rp(optionsDelete(ctxid)).then(dResult => {
-      console.log(`removed context ${dResult}`);
-      _.remove(contextPool, e => e == ctxid);
-      _.remove(createdPool, e => e == ctxid);
-    })
-  })
-  .catch(err => {
-    console.log(err)
-  });
 };
 
 
