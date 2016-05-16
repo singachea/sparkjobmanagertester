@@ -7,7 +7,7 @@ let ops = require('./ops');
 
 
 var prefix = process.argv[2] == "true";
-var cliContexts = _.slice(process.argv, 2, process.argv.length);
+var cliContexts = _.slice(process.argv, 3, process.argv.length);
 
 if(prefix) {
     cliContexts = _.map(cliContexts, e => "ctx" + e);
@@ -24,7 +24,7 @@ contextNames.then(ctxNames => {
 
     var removedContexts = _.map(ctxNames, ctxName => {
         return ops.deleteContextByName(ctxName).then(ctx => {
-            console.log(`Removed ${ctx}`);
+            console.log(`Removed ${ctxName}: ${ctx}`);
         }).catch(err => {
            console.error(`Crap! something wrong with context deletion of "${ctx}"`)
         });
@@ -37,8 +37,10 @@ contextNames.then(ctxNames => {
 }).catch(err => {
     console.error("Oop! can't pull context list from server!");
     console.error(err);
+}).finally(() => {
+    console.log("========== END CLEANING CONTEXTS =========== ");
 });
 
 
-console.log("========== END CLEANING CONTEXTS =========== ");
+
 
