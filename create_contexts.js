@@ -10,7 +10,7 @@ winston.add(winston.transports.File, { filename: 'logs/creating_context.log' });
 
 let logger = winston;
 
-let autoDeleteContext = process.argv[7] == "true"; 
+let autoDeleteContext = process.argv[2] == "true";
 let contextSize = process.argv[3] || config.context.contextSize;
 let tick = process.argv[4] || config.context.defaultTick;
 let requestInterval = process.argv[5] || config.context.interval;
@@ -154,12 +154,12 @@ let run = function () {
         oldActiveContextPoolLength = activeContextPool.length;
     }
 
-    if(!autoDeleteContext) {
+    if(autoDeleteContext) {
         if(requestingContextPool.length >= contextSize) return; // max out
         createContext(tick).then((createdCtxId) =>{
             setTimeout(()=> {
                 queueJobs(createdCtxId, jobsPerContext);
-            }, 2000);
+            }, 200);
         });
     }
     else {
