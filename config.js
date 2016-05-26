@@ -1,3 +1,4 @@
+let _ = require('lodash');
 let host = process.env.SJMTEST_HOST || 'http://localhost:8090'
 
 module.exports = {
@@ -10,15 +11,34 @@ module.exports = {
     defaultTick: process.env.SJMTEST_CONTEXT_TICK || 100,
     contextCreationChance: process.env.SJMTEST_CREATING_CHANCE || 0.90,
     jobsPerContext: process.env.SJMTEST_JOBS_PER_CONTEXT || 8,
-    timeoutToKillContext: process.env.SJMTEST_TIMEOUT_TO_KILL_CONTEXT || 10000
+    timeoutToKillContext: process.env.SJMTEST_TIMEOUT_TO_KILL_CONTEXT || 20000
   },
   job: {
     host: host,
     interval: process.env.SJMTEST_JOB_INTERVAL || 1000,
-    // jobClasses: ["sjm.jobs.SumJob"],
-    jobClasses: ["sjm.jobs.SqlJob"],
-    sumJob: {
-      sleep: process.env.SJMTEST_JOB_SLEEP || 100000
+    // jobTypes: ["sumJob"],
+    jobTypes: ["sqlJob"],
+    runInParallel: true,
+    params: {
+      sqlJob: {
+        className: "sjm.jobs.SqlJob",
+        body: () => {
+          return {
+            sql : `select * from anno_clinvar.cpra_2016_02_0de5ec5_0 limit ${_.random(1, 100000)}`,
+            cacheDf: false
+          }  
+        }
+      },
+      sumJob: {
+        className: "sjm.jobs.SumJob",
+        body: () => {
+          return {
+            x: 10000,
+            sleep: 10000,
+            ex: false
+          }  
+        }
+      }
     }
   }
 };

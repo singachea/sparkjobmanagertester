@@ -114,18 +114,21 @@ function requestJob(ctxId, index) {
 
 
 function queueJobs(ctxId, num) {
-    // var p = bb.resolve(null);
-    // _.each(_.range(0, num), (index) => {
-    //     p = sequential(p, () =>{
-    //         return requestJob(ctxId, index);
-    //     }).delay(10);
-    // });
-
-    var p = bb.all(_.map(_.range(0, num), index => {
-        return requestJob(ctxId, index);
-    }));
-
-
+    var p = bb.resolve(null);
+    
+    if(config.job.runInParallel) {
+        p = bb.all(_.map(_.range(0, num), index => {
+            return requestJob(ctxId, index);
+        }));    
+    }
+    else {
+        _.each(_.range(0, num), (index) => {
+            p = sequential(p, () =>{
+                return requestJob(ctxId, index);
+            }).delay(10);
+        });    
+    }
+    
     return p.then(result => {
             console.log(`queue all jobs for context ${ctxId}`);
         })
@@ -162,9 +165,11 @@ let run = function () {
     if(autoDeleteContext) {
         if(requestingContextPool.length >= contextSize) return; // max out
         createContext(tick).then((createdCtxId) =>{
-            setTimeout(()=> {
-                queueJobs(createdCtxId, jobsPerContext);
-            }, 200);
+            if(createdCtxId) {
+                setTimeout(()=> {
+                    queueJobs(createdCtxId, jobsPerContext);
+                }, 200);
+            }
         });
     }
     else {

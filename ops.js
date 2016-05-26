@@ -56,29 +56,21 @@ function createContextById(ctxId) {
 
 
 function submitJobByName(ctxName) {
+
+    var jobParam = config.job.params[_.sample(config.job.jobTypes)];
+    
     return rp({
         uri: `${config.job.host}/jobs`,
         method: 'POST',
         qs: {
             'context': ctxName,
-            'job': _.sample(config.job.jobClasses)
+            'job': jobParam.className
         },
-        body: {
-            // sql: '',
-            // x: 10000,
-            // sleep: config.job.sumJob.sleep,
-            // ex: false,
-            sql : "select * from anno_clinvar.cpra_2016_02_0de5ec5_0",
-            take: 5
-        },
+        body: jobParam.body(),
         timeout: 600000,
         headers: {},
         json: true
-    })
-    //     .then((result) => {
-    //     console.log(`Successful Submit job for context ${ctxName}`, result);
-    //     return result;
-    // })
+    });
 }
 
 function submitJobById(ctxId) {
