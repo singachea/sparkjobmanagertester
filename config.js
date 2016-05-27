@@ -2,6 +2,10 @@ let _ = require('lodash');
 let host = process.env.SJMTEST_HOST || 'http://localhost:8090'
 
 module.exports = {
+  statsd: {
+    host: process.env.STATSD_HOST || '192.168.99.100',
+    port: process.env.STATSD_PORT || 8125
+  },
   context: {
     host: host,
     core: process.env.SJMTEST_CORE || 4,

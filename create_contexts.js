@@ -5,6 +5,10 @@ let ops = require('./ops');
 let _ = require('lodash');
 let bb = require('bluebird');
 
+let SDC = require('statsd-client');
+
+let sdc = new SDC({prefix: 'sjmtester' , host: config.statsd.host, port: config.statsd.port});
+
 let winston = require('winston');
 winston.add(winston.transports.File, { filename: 'logs/creating_context.log' });
 
@@ -50,9 +54,11 @@ function createContext(ctxId) {
 
     return ops.createContextById(ctxId).then(result => {
         activeContextPool.push(ctxId);
+        sdc.increment("contextRequestSuccess");
         console.log("Active Context Pool:", activeContextPool);
         return ctxId;
     }).catch( err => {
+        sdc.increment("contextRequestFail");
         logger.error(err);
         console.log(`=========== ERROR for ${ctxId} =============`);
         if(err.response) console.log(err.response.body);
@@ -75,10 +81,12 @@ function deleteContext() {
 
 
     return ops.deleteContextById(ctxId).then(result => {
+        sdc.increment("deleteContextRequestSuccess");
         console.log('remove ctx' + ctxId);
         removeContextIdFromPools();
         console.log("Active Context Pool:", activeContextPool);
     }).catch(err => {
+        sdc.increment("deleteContextRequestFail");
         logger.error(err);
         console.log("Can't remove context", ctxId);
         if(err.response) console.log(err.response.body);
@@ -106,8 +114,10 @@ function requestJob(ctxId, index) {
     return ops.submitJobById(ctxId).then(result => {
         console.log(`Successful Submit job for context ${ctxId} [tick: ${tickIndex}]`);
         console.log(result);
+        sdc.increment("jobSuccess")
     }).catch(err => {
         console.log(`Failed submit job for context ${ctxId} [tick: ${tickIndex}]`);
+        sdc.increment("jobFail")
         if(err.response) console.log(err.response.body);
         else console.log(err);
     }).finally(() => {
