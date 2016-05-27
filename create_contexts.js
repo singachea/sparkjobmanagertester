@@ -24,6 +24,9 @@ let activeContextPool = [];
 let oldRequestingContextPoolLength = -1;
 let oldActiveContextPoolLength = -1;
 
+let gSubmittedJobs = 0;
+let gFailedJobs = 0;
+
 console.log("contextSize", contextSize);
 console.log("starting tick", tick);
 console.log("creatingChance", creatingChance);
@@ -115,15 +118,19 @@ function requestJob(ctxId, index) {
 
 function queueJobs(ctxId, num) {
     var p = bb.resolve(null);
+    var jobCount = 0;
+    var failedJobCount = 0;
     
     if(config.job.runInParallel) {
         p = bb.all(_.map(_.range(0, num), index => {
+            jobCount++;
             return requestJob(ctxId, index);
         }));    
     }
     else {
         _.each(_.range(0, num), (index) => {
             p = sequential(p, () =>{
+                jobCount++;
                 return requestJob(ctxId, index);
             }).delay(10);
         });    
@@ -142,13 +149,19 @@ function queueJobs(ctxId, num) {
         })
         .catch(err => {
             console.log(err);
+            failedJobCount++;
             removeContextIdFromPools(ctxId);
         }).finally(() => {
             // remove context here
             return ops.deleteContextById(ctxId).then(dResult => {
                 console.log(`removed context ${ctxId}: ${dResult}`);
                 removeContextIdFromPools(ctxId);
+            }).catch(err => {
+                console.log(`can't remove context ${ctxId}`);
             })
+        }).then(() => {
+            // console.log('inside nested finally', {submittedJobs: jobCount, failedJobs: failedJobCount});
+            return {submittedJobs: jobCount, failedJobs: failedJobCount};
         })
 }
 
@@ -162,12 +175,19 @@ let run = function () {
         oldActiveContextPoolLength = activeContextPool.length;
     }
 
+
     if(autoDeleteContext) {
         if(requestingContextPool.length >= contextSize) return; // max out
         createContext(tick).then((createdCtxId) =>{
             if(createdCtxId) {
                 setTimeout(()=> {
-                    queueJobs(createdCtxId, jobsPerContext);
+                    queueJobs(createdCtxId, jobsPerContext).then(result => {
+                        console.log('job result', result);
+                        gSubmittedJobs += result.submittedJobs;
+                        gFailedJobs += result.failedJobs;
+
+                        console.log(`====> JOBS FAILED/TOTAL  ${gFailedJobs}/${gSubmittedJobs}`);
+                    });
                 }, 200);
             }
         });
