@@ -34,5 +34,5 @@ $> node job.js <requestInterval:3000>
 ```
 
 
-sudo docker run -dit --name sjmtester -e "SJMTEST_HOST=http://10.2.76.83:31500" docker-dev.hli.io/ccm/sjmtester:0.0.1 bash
+sudo docker run -dit --name sjmtester -e "SJMTEST_HOST=http://10.2.76.83:31500" -e "STATSD_HOST=10.2.93.107" docker-dev.hli.io/ccm/sjmtester:0.0.1 bash
 sudo docker exec -it sjmtester bash

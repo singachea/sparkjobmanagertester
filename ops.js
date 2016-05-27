@@ -6,6 +6,38 @@ let bb = require('bluebird');
 
 
 
+function getStatistics() {
+    return rp({
+        uri: `${config.context.host}/status/metrics`,
+        method: 'GET',
+        timeout: 600000,
+        json: true
+    }).then(results => {
+        if(results.length == 0) return {
+            activeJobsCount: 0,
+            activeContextsCount: 0,
+            agentActorsCount: 0,
+            activeLocksCount: 0,
+            creatingContextRequestsQueue: 0,
+            awaitingContextRequests: 0
+        };
+
+        var sup = results[0];
+        var creatingContextRequestsQueue = _.sum(_.map(results, e => e.creatingContextRequestsQueue.length));
+        var awaitingContextRequests = _.sum(_.map(results, e => e.awaitingContextRequests.length));
+
+        return {
+            activeJobsCount: sup.activeJobsCount,
+            activeContextsCount: sup.activeContextsCount,
+            agentActorsCount: sup.agentActorsCount,
+            activeLocksCount: sup.activeLocksCount,
+            creatingContextRequestsQueue: creatingContextRequestsQueue,
+            awaitingContextRequests: awaitingContextRequests
+        }
+
+    })
+}
+
 function getContextNames() {
     return rp({
         uri: `${config.context.host}/contexts`,
@@ -79,6 +111,7 @@ function submitJobById(ctxId) {
 
 
 module.exports = {
+    getStatistics: getStatistics,
     getContextNames: getContextNames,
     deleteContextByName: deleteContextByName,
     deleteContextById: deleteContextById,
