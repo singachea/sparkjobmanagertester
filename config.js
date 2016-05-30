@@ -50,7 +50,7 @@ module.exports = {
               redis_connection: "v2-ccm-dev2-001.owbwwo.0001.usw2.cache.amazonaws.com",
               sections: [
                 {
-                  cache_key: "cq-0003-0#{uuid}",
+                  cache_key: `cq-0003-0${uuid}`,
                   offset: 0,
                   limit: 1000
                 }
