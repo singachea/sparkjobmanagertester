@@ -109,6 +109,25 @@ function submitJobById(ctxId) {
     return submitJobByName(`ctx${ctxId}`);
 }
 
+function submitSingleJob(ctxName, jobType) {
+    if(!jobType) throw new Error("You need to provided `jobType`");
+    
+    var jobParam = config.job.params[jobType];
+    
+    return rp({
+        uri: `${config.job.host}/jobs`,
+        method: 'POST',
+        qs: {
+            'context': ctxName,
+            'job': jobParam.className
+        },
+        body: jobParam.body(),
+        timeout: 600000,
+        headers: {},
+        json: true
+    });
+}
+
 
 module.exports = {
     getStatistics: getStatistics,
@@ -118,5 +137,6 @@ module.exports = {
     createContextByName: createContextByName,
     createContextById: createContextById,
     submitJobByName: submitJobByName,
-    submitJobById: submitJobById
+    submitJobById: submitJobById,
+    submitSingleJob: submitSingleJob
 };
