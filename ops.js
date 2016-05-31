@@ -50,6 +50,18 @@ function getContextNames() {
     })
 }
 
+function getJobById(jobId) {
+    return rp({
+        uri: `${config.context.host}/jobs/${jobId}`,
+        method: 'GET',
+        timeout: 600000,
+        json: true
+    }).catch(err => {
+        console.log(`Error in getting job id ${jobId}`);
+        return {}
+    })
+}
+
 function deleteContextByName(name) {
     return rp({
         uri: `${config.context.host}/contexts/${name}`,
@@ -109,11 +121,14 @@ function submitJobById(ctxId) {
     return submitJobByName(`ctx${ctxId}`);
 }
 
-function submitSingleJob(ctxName, jobType) {
+function submitSingleJob(ctxName, jobType, bodyFunc) {
     if(!jobType) throw new Error("You need to provided `jobType`");
-    
+
+
     var jobParam = config.job.params[jobType];
-    
+
+    var body = bodyFunc ? bodyFunc(jobParam) : jobParam.body();
+
     return rp({
         uri: `${config.job.host}/jobs`,
         method: 'POST',
@@ -121,22 +136,50 @@ function submitSingleJob(ctxName, jobType) {
             'context': ctxName,
             'job': jobParam.className
         },
-        body: jobParam.body(),
+        body: body,
         timeout: 600000,
         headers: {},
         json: true
-    });
+    }).then(result => {
+        var jobId = result.response;
+
+        return {jobId: jobId, result_location: (body.extra || {}).location}
+    })
 }
 
+
+function isJobSuccess(jid) {
+    return getJobById(jid).then(result => {
+        if(result.status == "RUNNING") return bb.delay(3000).then(() => {
+            return isJobSuccess(jid)
+        });
+
+        return { success: result.status == "SUCCESS", result: result};
+    })
+}
+
+function runSubCohortJobs(times, cName, result_location) {
+    return bb.all(_.map(_.range(times), () => {
+        return submitSingleJob(cName, 'subCohortJob', jobParam => {
+            return jobParam.body(result_location);
+        });
+    })).then(result => {
+        console.log(result);
+        return []
+    });
+}
 
 module.exports = {
     getStatistics: getStatistics,
     getContextNames: getContextNames,
+    getJobById: getJobById,
     deleteContextByName: deleteContextByName,
     deleteContextById: deleteContextById,
     createContextByName: createContextByName,
     createContextById: createContextById,
     submitJobByName: submitJobByName,
     submitJobById: submitJobById,
-    submitSingleJob: submitSingleJob
+    submitSingleJob: submitSingleJob,
+    isJobSuccess: isJobSuccess,
+    runSubCohortJobs: runSubCohortJobs
 };
