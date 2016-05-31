@@ -57,7 +57,7 @@ module.exports = {
               ]
             },
             extra: {
-              location: result_location
+              result_location: result_location
             }
           }
         }
@@ -85,7 +85,11 @@ module.exports = {
                   limit: 1000
                 }
               ]
+            },
+            extra: {
+              result_location: result_location
             }
+            
           }
         }
       },

@@ -143,7 +143,7 @@ function submitSingleJob(ctxName, jobType, bodyFunc) {
     }).then(result => {
         var jobId = result.response;
 
-        return {jobId: jobId, result_location: (body.extra || {}).location}
+        return {jobId: jobId, result_location: (body.extra || {}).result_location}
     })
 }
 
@@ -159,13 +159,18 @@ function isJobSuccess(jid) {
 }
 
 function runSubCohortJobs(times, cName, result_location) {
+    if(!result_location || !cName) throw new Error("result_location and context_name are needed!");
+    
     return bb.all(_.map(_.range(times), () => {
         return submitSingleJob(cName, 'subCohortJob', jobParam => {
             return jobParam.body(result_location);
         });
-    })).then(result => {
-        console.log(result);
-        return []
+    })).then(r => {
+        console.log(`Finished all sub cohort jobs for context ${cName}`);
+        return r;
+    }).catch(error => {
+        console.log(error);
+        return [];
     });
 }
 

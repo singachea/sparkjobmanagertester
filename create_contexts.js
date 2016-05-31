@@ -115,11 +115,13 @@ function requestJob(ctxId, index) {
         console.log(`Successful Submit job for context ${ctxId} [tick: ${tickIndex}]`);
         console.log(result);
         sdc.increment("jobSuccess")
+        return result.response;
     }).catch(err => {
         console.log(`Failed submit job for context ${ctxId} [tick: ${tickIndex}]`);
-        sdc.increment("jobFail")
+        sdc.increment("jobFail");
         if(err.response) console.log(err.response.body);
         else console.log(err);
+        return null;
     }).finally(() => {
         console.timeEnd(targetTime);
     });
@@ -147,16 +149,13 @@ function queueJobs(ctxId, num) {
     }
     
     return p.then(result => {
-            console.log(`queue all jobs for context ${ctxId}`);
+            console.log(`queue all jobs for context ${ctxId}`, result);
+            return _.filter(result, r => r != null);
         })
-        .delay(config.context.timeoutToKillContext)
-        .then(() => {
-
-            // return ops.deleteContextById(ctxId).then(dResult => {
-            //     console.log(`removed context ${ctxId}: ${dResult}`);
-            //     removeContextIdFromPools(ctxId);
-            // })
+        .then(jobIds => {
+            return _.map(jobIds, jid => ops.isJobSuccess(jid)); // waiting until each job finishes / fails
         })
+        // .delay(config.context.timeoutToKillContext)
         .catch(err => {
             console.log(err);
             failedJobCount++;
@@ -170,7 +169,6 @@ function queueJobs(ctxId, num) {
                 console.log(`can't remove context ${ctxId}`);
             })
         }).then(() => {
-            // console.log('inside nested finally', {submittedJobs: jobCount, failedJobs: failedJobCount});
             return {submittedJobs: jobCount, failedJobs: failedJobCount};
         })
 }

@@ -22,7 +22,6 @@ ops.submitSingleJob(cName, jobType).then(result => {
 
     if(alsoRunSubCohort) {
         ops.isJobSuccess(result.jobId).then(r => {
-            console.log(r);
             if (r.success) {
                 return ops.runSubCohortJobs(numberOfSubCohorts, cName, result.result_location);
             }
