@@ -1,5 +1,5 @@
 REPO=docker-dev.hli.io/ccm/sjmtester
-TAG=0.0.1
+TAG=0.0.2
 CONTAINER=sjmtester
 
 default:

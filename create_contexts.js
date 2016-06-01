@@ -20,6 +20,8 @@ let tick = process.argv[4] || config.context.defaultTick;
 let requestInterval = process.argv[5] || config.context.interval;
 let creatingChance = process.argv[6] || config.context.contextCreationChance;
 let jobsPerContext = process.argv[7] || config.context.jobsPerContext;
+let createSubcohortJobsAfterCohortJob = process.argv[8] || false;
+let subcohortJobsPerCohortJob = process.argv[9] || config.context.subcohortJobsPerCohortJob;
 
 
 let requestingContextPool = [];
@@ -114,7 +116,7 @@ function requestJob(ctxId, index) {
     return ops.submitJobById(ctxId).then(result => {
         console.log(`Successful Submit job for context ${ctxId} [tick: ${tickIndex}]`);
         console.log(result);
-        sdc.increment("jobSuccess")
+        sdc.increment("jobSuccess");
         return result.response;
     }).catch(err => {
         console.log(`Failed submit job for context ${ctxId} [tick: ${tickIndex}]`);
@@ -138,7 +140,7 @@ function requestCohortJob(ctxId, index) {
     return ops.submitSingleJob(`ctx${ctxId}`, 'cohortJob').then(result => {
         console.log(`Successful Submit job for context ${ctxId} [tick: ${tickIndex}]`);
         console.log(result);
-        sdc.increment("jobSuccess")
+        sdc.increment("jobSuccess");
         return result;
     }).catch(err => {
         console.log(`Failed submit job for context ${ctxId} [tick: ${tickIndex}]`);
@@ -178,25 +180,26 @@ function queueJobs(ctxId, num) {
             return _.filter(result, r => r != null);
         })
         .then(result => {
+            if(!createSubcohortJobsAfterCohortJob) return result;
+
             return bb.all(_.map(result, job => {
                 return ops.isJobSuccess(job.jobId).then(jobResult => {
                     if (jobResult.success) {
-                        console.log("Initiating sub-cohort jobs");
-                        return ops.runSubCohortJobs(3, `ctx${ctxId}`, job.result_location);
+                        return ops.runSubCohortJobs(subcohortJobsPerCohortJob, `ctx${ctxId}`, job.result_location);
                     }
                     else {
                         console.log(`Something wrong with job ${job.jobId}`);
-                        console.log(jobResult.result)
+                        console.log(jobResult.result);
+                        return bb.resolve(null);
                     }
                 });
 
-            })); // waiting until each job finishes / fails
+            })).then(subCohortResults => {
+                console.log("waiting until sub cohort finish")
+                console.log(subCohortResults)
+            }); // waiting until each job finishes / fails
         })
         // .delay(config.context.timeoutToKillContext)
-        .then(subCohortResults => {
-            console.log("waiting until sub cohort finish")
-            console.log(subCohortResults)
-        })
         .catch(err => {
             console.log(err);
             failedJobCount++;

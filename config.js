@@ -16,6 +16,7 @@ module.exports = {
     defaultTick: process.env.SJMTEST_CONTEXT_TICK || 100,
     contextCreationChance: process.env.SJMTEST_CREATING_CHANCE || 0.90,
     jobsPerContext: process.env.SJMTEST_JOBS_PER_CONTEXT || 8,
+    subcohortJobsPerCohortJob: process.env.SJMTEST_SUBCOHORTS_PER_COHORT_JOB || 5,
     timeoutToKillContext: process.env.SJMTEST_TIMEOUT_TO_KILL_CONTEXT || 20000
   },
   job: {

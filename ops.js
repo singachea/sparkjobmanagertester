@@ -172,6 +172,7 @@ function runSubCohortJobs(times, cName, result_location) {
     }).then(r => {
         console.log(`Sub-Cohort results for context ${cName}`, r);
         console.log(`Finished all sub cohort jobs for context ${cName}`);
+        return r;
     })
         .catch(error => {
         console.log(error);

@@ -1,13 +1,13 @@
 FROM node:6.1.0
 
-RUN useradd -ms /bin/bash ream
-USER ream
+RUN apt-get update
+RUN apt-get install -y vim
 
 ADD package.json /tmp/package.json
 
 RUN cd /tmp && npm install
-RUN mkdir -p /home/ream/app && cp -a /tmp/node_modules /home/ream/app
+RUN mkdir -p /app && cp -a /tmp/node_modules /app
 
-WORKDIR /home/ream/app
-ADD . /home/ream/app
+WORKDIR /app
+ADD . /app
 
