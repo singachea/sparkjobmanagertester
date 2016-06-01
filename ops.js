@@ -166,9 +166,14 @@ function runSubCohortJobs(times, cName, result_location) {
             return jobParam.body(result_location);
         });
     })).then(r => {
+        var validJobs= _.filter(r, e => e);
+        console.log(`Initiating Sub-Cohort for context ${cName}  [${validJobs.length} subcohorts]`);
+        return bb.map(validJobs, e => { return isJobSuccess(e.jobId) })
+    }).then(r => {
+        console.log(`Sub-Cohort results for context ${cName}`, r);
         console.log(`Finished all sub cohort jobs for context ${cName}`);
-        return r;
-    }).catch(error => {
+    })
+        .catch(error => {
         console.log(error);
         return [];
     });

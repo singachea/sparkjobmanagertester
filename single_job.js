@@ -9,7 +9,7 @@ let ops = require('./ops');
 let cName = process.argv[2];
 let jobType = process.argv[3] || 'cohortJob';
 let alsoRunSubCohort = process.argv[4] || false;
-let numberOfSubCohorts = 1;
+let numberOfSubCohorts = 3;
 
 if(!cName) throw new Error("Enter your context name!");
 
@@ -21,7 +21,7 @@ ops.submitSingleJob(cName, jobType).then(result => {
     console.log(result);
 
     if(alsoRunSubCohort) {
-        ops.isJobSuccess(result.jobId).then(r => {
+        return ops.isJobSuccess(result.jobId).then(r => {
             if (r.success) {
                 return ops.runSubCohortJobs(numberOfSubCohorts, cName, result.result_location);
             }
@@ -37,3 +37,6 @@ ops.submitSingleJob(cName, jobType).then(result => {
 }).finally(() => {
     console.timeEnd("Submission Time");
 });
+
+
+// return ops.runSubCohortJobs(numberOfSubCohorts, 'ctx2', 'hdfs://10.2.33.211:50030/test/data-ungoverned/query-service-test/cq03935e80b0-27a5-11e6-adcb-11fc8d353a75.parquet');
