@@ -19,6 +19,7 @@ function run() {
         sdc.gauge("creatingContextRequestsQueue", r.creatingContextRequestsQueue);
         sdc.gauge("awaitingContextRequests", r.awaitingContextRequests);
     }).catch(err => {
+        console.log(err)
         console.log('crap cannot get statistic')
     })
 }

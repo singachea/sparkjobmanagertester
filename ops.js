@@ -8,11 +8,14 @@ let bb = require('bluebird');
 
 function getStatistics() {
     return rp({
-        uri: `${config.context.host}/status/metrics`,
+        uri: `${config.context.host}/metrics/supervisor`,
         method: 'GET',
         timeout: 600000,
         json: true
     }).then(results => {
+        return _.values(results);
+    })
+        .then(results => {
         if(results.length == 0) return {
             activeJobsCount: 0,
             activeContextsCount: 0,
