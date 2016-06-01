@@ -22,7 +22,7 @@ let creatingChance = process.argv[6] || config.context.contextCreationChance;
 let jobsPerContext = process.argv[7] || config.context.jobsPerContext;
 let createSubcohortJobsAfterCohortJob = process.argv[8] || false;
 let subcohortJobsPerCohortJob = process.argv[9] || config.context.subcohortJobsPerCohortJob;
-
+let runningLoops = process.argv[10] || config.context.runningLoops;
 
 let requestingContextPool = [];
 let activeContextPool = [];
@@ -185,7 +185,7 @@ function queueJobs(ctxId, num) {
             return bb.all(_.map(result, job => {
                 return ops.isJobSuccess(job.jobId).then(jobResult => {
                     if (jobResult.success) {
-                        return ops.runSubCohortJobs(subcohortJobsPerCohortJob, `ctx${ctxId}`, job.result_location);
+                        return ops.runSubCohortJobs(subcohortJobsPerCohortJob, `ctx${ctxId}`, job.result_location, runningLoops);
                     }
                     else {
                         console.log(`Something wrong with job ${job.jobId}`);

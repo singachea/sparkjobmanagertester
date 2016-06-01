@@ -161,26 +161,37 @@ function isJobSuccess(jid) {
     })
 }
 
-function runSubCohortJobs(times, cName, result_location) {
-    if(!result_location || !cName) throw new Error("result_location and context_name are needed!");
-    
-    return bb.all(_.map(_.range(times), () => {
-        return submitSingleJob(cName, 'subCohortJob', jobParam => {
-            return jobParam.body(result_location);
-        });
-    })).then(r => {
-        var validJobs= _.filter(r, e => e);
-        console.log(`Initiating Sub-Cohort for context ${cName}  [${validJobs.length} subcohorts]`);
-        return bb.map(validJobs, e => { return isJobSuccess(e.jobId) })
-    }).then(r => {
-        console.log(`Sub-Cohort results for context ${cName}`, r);
-        console.log(`Finished all sub cohort jobs for context ${cName}`);
-        return r;
+function runNTimes(f, start, limit) {
+    if(start >= limit) return f();
+    return f().then(() => {
+        return runNTimes(f, start + 1, limit);
     })
+}
+
+function runSubCohortJobs(concurrentSubcohortNumber, cName, result_location, times) {
+    if(!result_location || !cName) throw new Error("result_location and context_name are needed!");
+
+    var f = () => {
+        return bb.all(_.map(_.range(concurrentSubcohortNumber), () => {
+            return submitSingleJob(cName, 'subCohortJob', jobParam => {
+                return jobParam.body(result_location);
+            });
+        })).then(r => {
+            var validJobs= _.filter(r, e => e);
+            console.log(`Initiating Sub-Cohort for context ${cName}  [${validJobs.length} subcohorts]`);
+            return bb.map(validJobs, e => { return isJobSuccess(e.jobId) })
+        }).then(r => {
+            console.log(`Sub-Cohort results for context ${cName}`, r);
+            console.log(`Finished all sub cohort jobs for context ${cName}`);
+            return r;
+        })
         .catch(error => {
-        console.log(error);
-        return [];
-    });
+            console.log(error);
+            return [];
+        });
+    };
+    
+    return runNTimes(f, 1, times);
 }
 
 module.exports = {
